@@ -76,11 +76,23 @@ WavetablesVoice {
 
   // Allocates 195 consecutive buffers and fills them. VOsc requires the
   // buffers be consecutively numbered and identically sized.
+  // The 2 ms wait paces the 195 b_setn messages.
+  //
+  // sendCollection rather than loadCollection, which the design originally
+  // specified: loadCollection goes via a temp file per buffer, and 195 temp
+  // file writes on a Pi's SD card is a worse trade than a 0.4 s pause. The
+  // pacing is there because 195 unpaced ~2 KB OSC messages back to back is
+  // the shape that overflows a socket buffer, and a dropped b_setn leaves
+  // one wavetable silently zeroed. All 195 are read back and compared by
+  // test_load_banks_round_trips_through_a_live_server.
+  //
+  // Needs to run inside a Routine for the wait, which norns' engine load
+  // and the test's waitForBoot both provide.
   *loadBanks { arg server, dir;
     var wts = this.bankWavetables(dir);
     var bufs = Buffer.allocConsecutive(this.totalSlots, server, waveLen * 2, 1);
     server.sync;
-    wts.do({ arg wt, i; bufs[i].sendCollection(wt) });
+    wts.do({ arg wt, i; bufs[i].sendCollection(wt, 0, 0.002) });
     server.sync;
     ^bufs;
   }

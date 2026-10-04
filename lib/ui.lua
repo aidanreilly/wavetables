@@ -55,6 +55,39 @@ function ui.row_count()
   return #ui.ROWS
 end
 
+-- Row 1 becomes a read-only tuning display when the z_tuning mod is active.
+--
+-- The spec requires it, and params_def already ignores `cents` under
+-- z_tuning, so showing note and dtun there would put a value on screen that
+-- moves under E3 and changes no pitch.
+function ui.row_is_tuning(r)
+  return r == 1 and z_tuning ~= nil
+end
+
+-- Draws row 1 as tuning name and root frequency. Both are clipped to the
+-- 7-character column budget the formatters are held to.
+local function draw_tuning_row(y, level)
+  local name = "?"
+  local state = z_tuning.get_tuning_state and z_tuning.get_tuning_state()
+  if state and state.selected_tuning then
+    name = tostring(state.selected_tuning)
+  end
+
+  screen.level(2)
+  screen.move(LABEL_X, y)
+  screen.text("ztun:")
+  screen.level(level)
+  screen.move(VALUE_X, y)
+  screen.text(string.sub(name, 1, 7))
+
+  screen.level(2)
+  screen.move(LABEL2_X, y)
+  screen.text("root:")
+  screen.level(level)
+  screen.move(VALUE2_X, y)
+  screen.text(string.format("%.0fhz", params:get("zt_root_freq") or 0))
+end
+
 -- Brightness per row. In ctrl mode the selected row is lit and the rest are
 -- dim; in slider mode every row is dim because the sliders have focus.
 function ui.levels(row, ctrl)
@@ -65,14 +98,20 @@ function ui.levels(row, ctrl)
   return lv
 end
 
-local function draw_cell(label_x, value_x, y, label, prefix, voice, level)
+-- `override` replaces the value text entirely. Nothing clears a cell
+-- between draws, so a second string at the same position would overprint
+-- the first rather than replace it.
+local function draw_cell(label_x, value_x, y, label, prefix, voice, level, override)
   screen.level(2)
   screen.move(label_x, y)
   screen.text(label)
   screen.level(level)
   screen.move(value_x, y)
-  local render = RENDER[prefix]
-  screen.text(render(params:get(prefix .. voice)))
+  if override then
+    screen.text(override)
+  else
+    screen.text(RENDER[prefix](params:get(prefix .. voice)))
+  end
 end
 
 function ui.redraw(state)
@@ -85,16 +124,18 @@ function ui.redraw(state)
 
   for r, row in ipairs(ui.ROWS) do
     local y = ui.ROW_Y[r]
+    if ui.row_is_tuning(r) then
+      draw_tuning_row(y, lv[r])
+      goto continue
+    end
+    -- The env cell reads [flw] instead of the envelope name when the fader
+    -- play mode is the env follower, as sines does.
+    local right_override = nil
+    if r == 6 and state.play_mode == 1 then right_override = "[flw]" end
     draw_cell(LABEL_X, VALUE_X, y, row.left[1], row.left[2], voice, lv[r])
-    draw_cell(LABEL2_X, VALUE2_X, y, row.right[1], row.right[2], voice, lv[r])
-  end
-
-  -- The env row shows [flw] instead of the envelope name when the fader
-  -- play mode is the env follower, as sines does.
-  if state.play_mode == 1 then
-    screen.level(lv[6])
-    screen.move(VALUE2_X, ui.ROW_Y[6])
-    screen.text("[flw]")
+    draw_cell(LABEL2_X, VALUE2_X, y, row.right[1], row.right[2], voice, lv[r],
+      right_override)
+    ::continue::
   end
 
   for i = 0, 15 do

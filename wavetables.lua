@@ -136,6 +136,9 @@ function init()
     while true do
       clock.sleep(0.1)
       t = t + 0.1
+      -- Parking a voice stops its node computing, which truncates whatever
+      -- is left of the amp_slew fade, so the hold has to track the slew.
+      gate.set_slew(params:get("amp_slew"))
       for i = 1, NUM_VOICES do
         local change = gate.update(i, params:get("vol" .. i), t)
         if change ~= nil then
@@ -182,6 +185,8 @@ function enc(n, delta)
     end
   elseif n == 2 then
     if ctrl then
+      -- the tuning row is a display, not an editor
+      if ui.row_is_tuning(row) then return end
       local prefix = ui.ROWS[row].left[2]
       params:delta(prefix .. (edit + 1), delta)
     else
@@ -189,6 +194,7 @@ function enc(n, delta)
     end
   elseif n == 3 then
     if ctrl then
+      if ui.row_is_tuning(row) then return end
       local prefix = ui.ROWS[row].right[2]
       params:delta(prefix .. (edit + 1), delta)
     else
