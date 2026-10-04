@@ -1,5 +1,4 @@
--- Param definitions. Every engine call goes through here, so the UI only
--- ever reads and writes params and never talks to the engine directly.
+-- Param definitions
 
 local fmt = include("wavetables/lib/formatters")
 local wavemap = include("wavetables/lib/wavemap")
@@ -8,17 +7,6 @@ local P = {}
 
 P.NUM_VOICES = 16
 
--- Set true around params:read() and params:bang() at startup.
---
--- Four params write values that other params own: the 16 faders write vol,
--- and lfo_shape_global, env_delay_rand_global and global_pan fan out to all
--- 16 voices. The faders are added last and the globals first, so a bang
--- fires them either side of the per-voice values and overwrites whatever a
--- pset just restored. Measured without this guard: a saved vol of 0.35 came
--- back as 0, pan 1 as 0, lfo shape 5 as 1.
---
--- The guard only suppresses fan-out, never a direct edit, so a deliberate
--- global change after boot still reaches every voice.
 P.booting = false
 
 local function scale_names()
@@ -46,7 +34,6 @@ local function set_notes()
   end
 end
 
--- hz for a voice, honouring cents detune and the z_tuning mod when present
 local function voice_hz(i)
   local n = params:get("note" .. i)
   local hz = MusicUtil.note_num_to_freq(n)
@@ -75,8 +62,6 @@ function P.add_all()
     for i = 1, P.NUM_VOICES do engine.amp_slew(i - 1, x) end
   end)
 
-  -- Globals for the morph motion. One value, 16 different phase offsets,
-  -- because each voice scales it by its own index in the SynthDef.
   params:add_control("lfo_spread", "lfo spread",
     controlspec.new(0.0, 1.0, "lin", 0.01, 0.5))
   params:set_action("lfo_spread", function(x) engine.lfo_spread(x) end)
@@ -95,9 +80,7 @@ function P.add_all()
   params:add_option("16n_auto", "auto bind 16n", { "yes", "no" }, 1)
   params:add_option("16n_params_jump", "16n param jumps", { "yes", "no" }, 2)
 
-  -- Play mode turns the faders into struck keys: movement sounds the voice
-  -- and stopping releases it. Both tunables are params because the feel can
-  -- only be judged on hardware. See lib/faderplay.lua.
+  -- Play mode
   params:add_group("faders config", 3)
   params:add{ type = "number", id = "play_mode", name = "fader play mode",
     min = 0, max = 1, default = 0,
@@ -109,10 +92,6 @@ function P.add_all()
   params:add_control("play_hold", "play release hold",
     controlspec.new(0.07, 2.0, "lin", 0.01, 0.3, "s"))
 
-  -- Its own group of one. A param defined between two groups is counted as
-  -- a member of the preceding one by norns' menu walk, which is how it
-  -- previously made both "faders config" and "env delay" declare one fewer
-  -- member than they held.
   params:add_group("panning", 1)
   params:add{ type = "number", id = "global_pan", name = "global panning",
     min = 0, max = 1, default = 0,
@@ -157,8 +136,7 @@ function P.add_all()
       controlspec.new(-200, 200, "lin", 1, 0, "cents"))
     params:set_action("cents" .. i, function() send_hz(i) end)
 
-    -- VCO spread, distinct from cents: this fans the three oscillators
-    -- inside the voice apart, cents moves the whole voice.
+    -- VCO spread: fans the three oscillators
     params:add_control("detune" .. i, i .. "n vco detune",
       controlspec.new(0, 50, "lin", 1, 7, "cents"))
     params:set_action("detune" .. i, function(x) engine.detune(i - 1, x) end)
@@ -189,8 +167,7 @@ function P.add_all()
       controlspec.new(20, 20000, "exp", 0, 20000, "hz"))
     params:set_action("cutoff" .. i, function(x) engine.cutoff(i - 1, x) end)
 
-    -- Stored in dB/oct because that is what the screen shows. The engine
-    -- wants a tap index, so convert here: 6 -> 0, 24 -> 3.
+    -- Stored in dB/oct
     params:add_control("slope" .. i, i .. "n slope",
       controlspec.new(6, 24, "lin", 0.1, 24, "db/oct"))
     params:set_action("slope" .. i, function(x)
@@ -263,22 +240,10 @@ function P.add_all()
   end
 end
 
--- How close a fader must come, in CC units, before it takes over a wave.
+-- How close a fader must come, in CC units, before it takes over a wave
 P.FADER_CATCH = 5
 
--- 16n fader value to a wave position, with catch-up.
---
--- A sibling of the volume path's slider_crossing rather than the same
--- function, because the reference differs. slider_crossing asks whether a
--- new fader value is continuous with the last one the script ACCEPTED. Wave
--- takeover has to ask whether the fader has reached the position implied by
--- the voice's CURRENT wave, or grabbing a fader parked at rest would snap
--- that voice to wave 0.
---
--- Returns a wave value to set, or nil when the fader has not caught up yet.
--- `force` skips the catch-up check and is only used by tests to exercise the
--- mapping on its own. The 16n_params_jump param bypasses catch-up for real,
--- exactly as it does for volume.
+-- 16n fader value to a wave position, with catch-up
 function P.fader_to_wave(i, v, force)
   local waves = wavemap.WAVES_PER_BANK
   local mapped = util.clamp(util.linlin(0, 127, 0, waves, v), 0, waves)

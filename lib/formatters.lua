@@ -1,14 +1,9 @@
--- Screen value formatting. The norns screen gives each value column about
--- 38px, which is six characters at the default font, so everything here is
--- abbreviated to fit and the test pins that width.
-
--- include, not require: norns resolves script-relative paths through
--- include, and the test stub maps include back onto require.
+-- Screen value formatting
 local wavemap = include("wavetables/lib/wavemap")
 
 local fmt = {}
 
--- name, sample rate, bit depth. Carried over from sines unchanged.
+-- name, sample rate, bit depth
 fmt.SAMPLE_BITRATES = {
   { "hifi",    48000, 24 },
   { "clean1",  44100, 12 },
@@ -25,8 +20,7 @@ fmt.SAMPLE_BITRATES = {
   { "crush3",  800,   1 },
 }
 
--- name, env bias, attack, decay. Carried over from sines unchanged.
--- A bias of 1.0 holds the envelope open, which is what makes a drone.
+-- env bias, attack, decay
 fmt.ENVS = {
   { "drone",   1.0, 1.0,  1.0 },
   { "am1",     0.0, 0.001, 0.01 },
@@ -46,7 +40,6 @@ fmt.ENVS = {
   { "evolve4", 0.4, 25.0, 15.0 },
 }
 
--- Order matters: the index is passed straight to Select.kr in the engine.
 fmt.LFO_SHAPES = { "sine", "tri", "up", "down", "sqr", "rand" }
 
 function fmt.bank(n)
@@ -67,11 +60,6 @@ function fmt.lfo_depth(x)
 end
 
 function fmt.cutoff(hz)
-  -- Round FIRST, then branch. Two reasons. Strict Lua (matron) raises
-  -- "number has no integer representation" on string.format("%d", 820.37),
-  -- where LuaJIT truncates silently, and cutoff is an exp controlspec whose
-  -- encoder clicks land on values like 12008.000000000002. Rounding before
-  -- the comparison also keeps 999.6 reading as 1.0k rather than 1000.
   local r = math.floor(hz + 0.5)
   if r < 1000 then return string.format("%d", r) end
   if r < 10000 then return string.format("%.1fk", r / 1000) end
