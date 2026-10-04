@@ -1,10 +1,14 @@
--- Screen and grid drawing.
+-- Screen drawing.
 --
 -- The design put everything on one page, which means six text rows rather
 -- than sines' four. That is paid for by halving the level sliders from 32px
 -- to 16px: rows sit at y 5 to 40, sliders run from y 62 up to y 44.
+--
+-- There is no grid renderer. Grid support was removed on request, and with
+-- it the 7/8-level cap an 8-row grid imposed on the level sliders.
 
 local fmt = include("wavetables/lib/formatters")
+local wavemap = include("wavetables/lib/wavemap")
 
 local ui = {}
 
@@ -15,6 +19,10 @@ ui.SLIDER_BASE_Y = 62
 -- full-level slider reaches, and no text row may sit at or below it.
 ui.SLIDER_TOP_Y = ui.SLIDER_BASE_Y - 2 - ui.MAX_SLIDER
 ui.ROW_Y = { 5, 12, 19, 26, 33, 40 }
+
+-- The row the wave-mode marker lights. Row 2 is bank/wave, so lighting it
+-- says what the faders are currently driving.
+ui.WAVE_ROW = 2
 
 -- Column geometry, unchanged from sines.
 local LABEL_X, VALUE_X = 0, 24
@@ -90,12 +98,27 @@ end
 
 -- Brightness per row. In ctrl mode the selected row is lit and the rest are
 -- dim; in slider mode every row is dim because the sliders have focus.
-function ui.levels(row, ctrl)
+--
+-- Wave mode additionally lights the bank/wave row, in either view. A latched
+-- mode has to show itself: unlike a held key you can leave it on and come
+-- back to it.
+function ui.levels(row, ctrl, wave_mode)
   local lv = {}
   for i = 1, #ui.ROWS do
-    lv[i] = (ctrl and i == row) and 15 or 2
+    local lit = (ctrl and i == row) or (wave_mode and i == ui.WAVE_ROW)
+    lv[i] = lit and 15 or 2
   end
   return lv
+end
+
+-- Slider height for a voice, in pixels. Level mode reads vol; wave mode
+-- reads wave, so the slider bank doubles as a wavetable position display.
+function ui.slider_value(voice, wave_mode)
+  if wave_mode then
+    return util.linlin(0, wavemap.WAVES_PER_BANK, 0, ui.MAX_SLIDER,
+      params:get("wave" .. voice))
+  end
+  return params:get("vol" .. voice) * ui.MAX_SLIDER
 end
 
 -- `override` replaces the value text entirely. Nothing clears a cell
@@ -116,7 +139,7 @@ end
 
 function ui.redraw(state)
   local voice = state.edit + 1
-  local lv = ui.levels(state.row, state.ctrl)
+  local lv = ui.levels(state.row, state.ctrl, state.wave_mode)
 
   screen.aa(1)
   screen.line_width(2.0)
@@ -147,27 +170,6 @@ function ui.redraw(state)
   end
 
   screen.update()
-end
-
-function ui.redraw_grid(g, state)
-  local scale = ui.MAX_SLIDER / g.rows
-  g:all(0)
-  for x = 1, g.cols do
-    local lit = math.ceil((state.sliders[x] or 0) / scale)
-    for n = 0, lit - 1 do
-      local y = g.rows - n
-      if y >= 1 then
-        -- monobright grids have no intermediate levels, so the selected
-        -- column cannot be shown by brightness there.
-        if state.monobright then
-          g:led(x, y, 15)
-        else
-          g:led(x, y, x == (state.edit + 1) and 8 or 4)
-        end
-      end
-    end
-  end
-  g:refresh()
 end
 
 return ui

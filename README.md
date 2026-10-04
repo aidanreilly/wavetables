@@ -33,19 +33,34 @@ fans the three oscillators in each voice apart so they morph independently.
 |---|---|---|
 | `E1` | | select row |
 | `E2` | select voice | edit left column |
-| `E3` | voice level | edit right column |
+| `E3` | voice level, or wave in wave mode | edit right column |
 | `K2` | to params | to levels |
-| `K3` | play mode: fader / env follower | same |
+| `K3` | latch faders to level / wave | same |
 
 Rows: `note`/`dtun`, `bank`/`wave`, `lfor`/`lfod`, `cutf`/`slop`,
 `shap`/`detu`, `smpl`/`env`.
 
-Everything else, including `lfo spread`, `vco drift`, pan and the envelope
-controls, is in the params menu.
+Everything else, including `lfo spread`, `vco drift`, pan, play mode and the
+envelope controls, is in the params menu.
 
-**grid** 16 columns of voice levels.
+### Wave mode
 
-**16n** faders mapped to the 16 voice levels by default.
+`K3` latches what the faders drive. In wave mode each fader scans its own
+voice through the 64 waves of that voice's bank, so you can morph several
+voices at once by hand, and `E3` scans the selected voice if you have no 16n.
+
+It is a latch rather than a hold, so both hands stay free for the fader box.
+Two things on screen tell you it is on: the 16 sliders show wave position
+instead of level, and the `bank`/`wave` row lights up.
+
+A fader does nothing until it reaches the voice's current wave position, then
+takes over, so grabbing one does not snap the voice to wherever the fader
+happens to be parked. Set `16n param jumps` to `yes` in the params menu if
+you would rather they take over immediately. Switching back to level works
+the same way: a fader holds off until it returns near the level it had.
+
+**16n** faders drive the 16 voice levels, or their wave positions in wave
+mode.
 
 ## Wavetables
 

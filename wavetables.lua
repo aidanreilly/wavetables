@@ -8,7 +8,7 @@
 -- E2 - select voice
 -- E3 - voice level
 -- K2 - toggle levels/params
--- K3 - toggle fader/follow
+-- K3 - latch faders to level/wave
 --
 -- 16n
 -- n - voice level
@@ -32,11 +32,9 @@ local FPS = 14
 local edit = 0            -- selected voice, zero-based
 local row = 1             -- selected param row, 1 to 6
 local ctrl = false        -- false: levels, true: params
+local wave_mode = false   -- false: faders drive level, true: they drive wave
 local sliders = {}
 local screen_dirty = true
-
-local g = grid.connect()
-local monobright = false
 
 local redraw_clock, gate_clock, follow_clock
 local fader_abs = {}
@@ -54,7 +52,13 @@ end
 
 local function fader_callback(i, v)
   edit = i - 1
-  if slider_crossing(i, v) then
+  if wave_mode then
+    -- prev_16n is deliberately NOT updated here, so switching back to level
+    -- leaves the volume path's catch-up holding until the fader returns near
+    -- where it was. Otherwise volumes would jump the moment you toggle back.
+    local w = P.fader_to_wave(i, v)
+    if w then params:set("wave" .. i, w) end
+  elseif slider_crossing(i, v) then
     params:set("vol" .. i, util.linlin(0, 127, 0.0, 1.0, v))
     prev_16n[i] = v
   end
@@ -83,12 +87,6 @@ end
 function init()
   print("wavetables: E350 wavetable drone")
 
-  if util.string_starts(g.name, "monome 64 m64")
-    or util.string_starts(g.name, "monome 128 m128")
-    or util.string_starts(g.name, "monome 256 m256") then
-    monobright = true
-  end
-
   P.fader_callback = fader_callback
   P.add_all()
 
@@ -100,7 +98,7 @@ function init()
   P.booting = false
 
   for i = 1, NUM_VOICES do
-    sliders[i] = params:get("vol" .. i) * ui.MAX_SLIDER
+    sliders[i] = ui.slider_value(i, wave_mode)
     fader_abs[i] = 0
     fader_follow[i] = 0
     prev_16n[i] = util.linlin(0.0, 1.0, 0, 127, params:get("vol" .. i))
@@ -121,7 +119,7 @@ function init()
     while true do
       clock.sleep(1 / FPS)
       for i = 1, NUM_VOICES do
-        sliders[i] = params:get("vol" .. i) * ui.MAX_SLIDER
+        sliders[i] = ui.slider_value(i, wave_mode)
       end
       if screen_dirty then
         redraw()
@@ -196,6 +194,9 @@ function enc(n, delta)
       if ui.row_is_tuning(row) then return end
       local prefix = ui.ROWS[row].right[2]
       params:delta(prefix .. (edit + 1), delta)
+    elseif wave_mode then
+      -- a delta, so no catch-up is needed: it moves from where it is
+      params:delta("wave" .. (edit + 1), delta)
     else
       local v = sliders[edit + 1] + (delta * 2)
       params:set("vol" .. (edit + 1),
@@ -210,25 +211,20 @@ function key(n, z)
   if n == 2 then
     ctrl = not ctrl
   elseif n == 3 then
-    params:set("play_mode", params:get("play_mode") == 0 and 1 or 0)
+    -- Latched, following sines' one modal idiom (control_toggle on K2).
+    -- K1 would be the conventional modifier but a K1 press is how norns
+    -- switches to its own menu, and a latch needs a press. Play mode moved
+    -- to the params menu, where it already existed as "fader play mode".
+    wave_mode = not wave_mode
   end
   screen_dirty = true
 end
 
 function redraw()
   ui.redraw({
-    edit = edit, row = row, ctrl = ctrl,
+    edit = edit, row = row, ctrl = ctrl, wave_mode = wave_mode,
     sliders = sliders, play_mode = params:get("play_mode"),
   })
-  ui.redraw_grid(g, { edit = edit, sliders = sliders, monobright = monobright })
-end
-
-g.key = function(x, y, z)
-  if z == 1 then
-    params:set("vol" .. x, util.linlin(0, g.rows, 0.0, 1.0, g.rows - y))
-    edit = x - 1
-    screen_dirty = true
-  end
 end
 
 m = midi.connect()

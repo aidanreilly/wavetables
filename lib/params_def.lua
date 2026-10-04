@@ -257,6 +257,35 @@ function P.add_all()
   end
 end
 
+-- How close a fader must come, in CC units, before it takes over a wave.
+P.FADER_CATCH = 5
+
+-- 16n fader value to a wave position, with catch-up.
+--
+-- A sibling of the volume path's slider_crossing rather than the same
+-- function, because the reference differs. slider_crossing asks whether a
+-- new fader value is continuous with the last one the script ACCEPTED. Wave
+-- takeover has to ask whether the fader has reached the position implied by
+-- the voice's CURRENT wave, or grabbing a fader parked at rest would snap
+-- that voice to wave 0.
+--
+-- Returns a wave value to set, or nil when the fader has not caught up yet.
+-- `force` skips the catch-up check and is only used by tests to exercise the
+-- mapping on its own. The 16n_params_jump param bypasses catch-up for real,
+-- exactly as it does for volume.
+function P.fader_to_wave(i, v, force)
+  local waves = wavemap.WAVES_PER_BANK
+  local mapped = util.clamp(util.linlin(0, 127, 0, waves, v), 0, waves)
+
+  if force or params:string("16n_params_jump") == "yes" then
+    return mapped
+  end
+
+  local target = util.linlin(0, waves, 0, 127, params:get("wave" .. i))
+  if math.abs(v - target) > P.FADER_CATCH then return nil end
+  return mapped
+end
+
 -- Fader value to voice level for the env follower.
 --
 -- util.linexp cannot reach 0, by construction: an exponential mapping has
