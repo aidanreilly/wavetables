@@ -51,7 +51,7 @@ WavetablesVoice {
           ).asWavetable
         );
       });
-      // Duplicate wave 1 that makes the morph wrap
+      // Duplicate of wave 1 at slot 64, so wave = 64 still reads wave 1
       out = out.add(
         Signal.newFrom(frames.copyRange(0, waveLen - 1)).asWavetable
       );
@@ -140,8 +140,11 @@ WavetablesVoice {
         vcoPhase = (k / 3) * vcoDrift;
         rate = lfoRate * (1 + ((k - 1) * 0.03 * vcoDrift));
 
+        // fold, not wrap: VOsc sweeps every table between one block's
+        // position and the next, so a 63.9 -> 0.1 wrap scans the whole bank
+        // in 64 samples and clicks.
         pos = (base + (lfoDepth * WavetablesVoice.lfo(
-          rate, voicePhase + vcoPhase, lfoShape))) % wavesPerBank;
+          rate, voicePhase + vcoPhase, lfoShape))).fold(0, wavesPerBank);
 
         f = hz_ * (2 ** (((k - 1) * detune) / 1200));
 
