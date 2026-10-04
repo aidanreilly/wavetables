@@ -2,9 +2,8 @@
 
 A 16-voice wavetable drone synth for monome norns.
 
-Each voice is three wavetable oscillators scanning the Synthesis Technology
-E350 ROM banks, with per-oscillator LFO drift on the morph position and a
-variable-slope lowpass filter. Hold a chord and it keeps moving.
+Each voice is three wavetable oscillators scanning 3 wavetable ROM banks, with per-oscillator LFO drift on the morph position and a
+variable-slope lowpass filter.
 
 ## Install
 
