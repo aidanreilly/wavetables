@@ -6,15 +6,11 @@ Each voice is three wavetable oscillators scanning 3 wavetable ROM banks, with p
 
 ## Install
 
-Ensure norns is up to date. Visit <http://norns.local> and install
-`wavetables` from the maiden project manager, or run
-`;install https://github.com/aidanreilly/wavetables` in the maiden console.
+Ensure norns is up to date. Visit <http://norns.local> and run `;install https://github.com/aidanreilly/wavetables` in the maiden console.
 
 Then `SYSTEM => RESET` to pick up the SuperCollider engine, and restart.
 
-Optional: @catfact's `z_tuning` mod enables microtuning. Install with
-`;install https://github.com/catfact/z_tuning`, enable it in
-`SYSTEM => MODS`, then reset and restart.
+Optional: @catfact's `z_tuning` mod enables microtuning. Install with `;install https://github.com/catfact/z_tuning`, enable it in `SYSTEM => MODS`, then reset and restart.
 
 ## Play
 
