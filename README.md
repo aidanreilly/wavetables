@@ -37,6 +37,9 @@ fans the three oscillators in each voice apart so they morph independently.
 | `K2` | to params | to levels |
 | `K3` | latch faders to level / wave | same |
 
+`fader play mode` in the params menu switches the faders between setting
+levels and playing them. See below.
+
 Rows: `note`/`dtun`, `bank`/`wave`, `lfor`/`lfod`, `cutf`/`slop`,
 `shap`/`detu`, `smpl`/`env`.
 
@@ -59,8 +62,25 @@ happens to be parked. Set `16n param jumps` to `yes` in the params menu if
 you would rather they take over immediately. Switching back to level works
 the same way: a fader holds off until it returns near the level it had.
 
+### Play mode
+
+`fader play mode` turns the faders into struck keys. Move one and its voice
+sounds; stop moving and the voice falls silent on its own, so the fader can be
+left anywhere in its travel without holding a note on.
+
+The level comes from how far the fader moved in one tick rather than from
+where it ended up, so a fast sweep is loud and a slow nudge is quiet. A 16n
+has no touch sensing, so letting go can only be read as having stopped
+moving: this plays percussively and holding a fader still releases the voice
+rather than sustaining it.
+
+`play sensitivity` sets how much movement counts as full level, and
+`play release hold` how long a voice waits before falling silent. Both are in
+the params menu, because how this feels is a matter for your hands and your
+hardware.
+
 **16n** faders drive the 16 voice levels, or their wave positions in wave
-mode.
+mode, or play the voices in play mode.
 
 ## Wavetables
 

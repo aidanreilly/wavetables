@@ -95,13 +95,19 @@ function P.add_all()
   params:add_option("16n_auto", "auto bind 16n", { "yes", "no" }, 1)
   params:add_option("16n_params_jump", "16n param jumps", { "yes", "no" }, 2)
 
-  params:add_group("faders config", 2)
-  params:add_option("reset_style", "fader reset style", { "return", "zeroed" }, 2)
+  -- Play mode turns the faders into struck keys: movement sounds the voice
+  -- and stopping releases it. Both tunables are params because the feel can
+  -- only be judged on hardware. See lib/faderplay.lua.
+  params:add_group("faders config", 3)
   params:add{ type = "number", id = "play_mode", name = "fader play mode",
     min = 0, max = 1, default = 0,
     formatter = function(p)
-      return p:get() == 1 and "env follower" or "fader"
+      return p:get() == 1 and "play" or "level"
     end }
+  params:add_control("play_sensitivity", "play sensitivity",
+    controlspec.new(4, 64, "lin", 1, 24, "cc/tick"))
+  params:add_control("play_hold", "play release hold",
+    controlspec.new(0.07, 2.0, "lin", 0.01, 0.3, "s"))
 
   -- Its own group of one. A param defined between two groups is counted as
   -- a member of the preceding one by norns' menu walk, which is how it
@@ -284,18 +290,6 @@ function P.fader_to_wave(i, v, force)
   local target = util.linlin(0, waves, 0, 127, params:get("wave" .. i))
   if math.abs(v - target) > P.FADER_CATCH then return nil end
   return mapped
-end
-
--- Fader value to voice level for the env follower.
---
--- util.linexp cannot reach 0, by construction: an exponential mapping has
--- no zero. Feeding it a fader at rest returned 0.0001, which reads as
--- level > 0 everywhere else in the script, so voice gating could never park
--- a voice in env-follower mode and the follow clock kept rewriting vol over
--- anything E3 or the grid set. Below the threshold the answer is exactly 0.
-function P.follow_level(v)
-  if v < 1 then return 0 end
-  return util.linexp(0, 127, 0.0001, 1.0, v)
 end
 
 P.set_notes = set_notes

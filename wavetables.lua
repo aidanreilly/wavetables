@@ -25,6 +25,7 @@ _16n = include "wavetables/lib/16n"
 local P = include "wavetables/lib/params_def"
 local ui = include "wavetables/lib/ui"
 local gate = include "wavetables/lib/voicegate"
+local fplay = include "wavetables/lib/faderplay"
 
 local NUM_VOICES = 16
 local FPS = 14
@@ -37,8 +38,6 @@ local sliders = {}
 local screen_dirty = true
 
 local redraw_clock, gate_clock, follow_clock
-local fader_abs = {}
-local fader_follow = {}
 local prev_16n = {}
 
 -- 16n -----------------------------------------------------------------
@@ -58,6 +57,10 @@ local function fader_callback(i, v)
     -- where it was. Otherwise volumes would jump the moment you toggle back.
     local w = P.fader_to_wave(i, v)
     if w then params:set("wave" .. i, w) end
+  elseif params:get("play_mode") == 1 then
+    -- the clock reads fader deltas in play mode; absolute position is
+    -- meaningless there, so this path stays out of the way
+    return
   elseif slider_crossing(i, v) then
     params:set("vol" .. i, util.linlin(0, 127, 0.0, 1.0, v))
     prev_16n[i] = v
@@ -71,15 +74,6 @@ local function _16n_slider_callback(msg)
     local id = _16n.cc_2_slider_id(msg.cc)
     if id then params:set("fader" .. id, msg.val) end
   end
-end
-
--- env follower --------------------------------------------------------
-
-local function follow_countdown(i, abs)
-  if params:get("reset_style") == 1 then
-    return math.max(0, (fader_follow[i] or 0) - 1)
-  end
-  return abs
 end
 
 -- lifecycle -----------------------------------------------------------
@@ -99,8 +93,6 @@ function init()
 
   for i = 1, NUM_VOICES do
     sliders[i] = ui.slider_value(i, wave_mode)
-    fader_abs[i] = 0
-    fader_follow[i] = 0
     prev_16n[i] = util.linlin(0.0, 1.0, 0, 127, params:get("vol" .. i))
   end
 
@@ -146,21 +138,24 @@ function init()
     end
   end)
 
-  -- env delay randomisation and the fader env follower, from sines
+  -- env delay randomisation, from sines, and the fader play mode
   follow_clock = clock.run(function()
     while true do
       clock.sleep(1 / FPS)
+      fplay.configure({
+        sensitivity = params:get("play_sensitivity"),
+        hold_ticks = math.max(1, math.floor(params:get("play_hold") * FPS)),
+      })
       for i = 1, NUM_VOICES do
         local r = params:get("env_delay_rand" .. i)
         if r > 0 then
           engine.env_delay_rand(i - 1, math.random() * r)
         end
-        fader_abs[i] = params:get("fader" .. i)
-        fader_follow[i] = follow_countdown(i, fader_abs[i])
         if params:get("play_mode") == 1 then
-          if math.abs(fader_follow[i] - fader_abs[i]) > 10 then
-            params:set("vol" .. i, P.follow_level(fader_follow[i]))
-          end
+          -- the fader's position is ignored; only how far it moved this
+          -- tick matters, so a fader left anywhere in 0-127 is harmless
+          local level = fplay.update(i, params:get("fader" .. i))
+          if level then params:set("vol" .. i, level) end
         end
       end
     end
