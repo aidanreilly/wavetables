@@ -1,6 +1,6 @@
 # wavetables
 
-A 16-voice wavetable drone synth for monome norns.
+A 16-voice wavetable drone synth for [monome norns](https://monome.org/docs/norns/).
 
 Each voice is three wavetable oscillators scanning 3 wavetable ROM banks, with per-oscillator LFO drift on the morph position and a variable-slope lowpass filter.
 
@@ -14,7 +14,7 @@ Optional: @catfact's `z_tuning` mod enables microtuning. Install with `;install 
 
 ## Play
 
-Select a root note and scale in the params menu. 16 frequencies from that scale are spread across the voices.
+Select a root note and scale in the norns params menu. 16 frequencies from that scale are spread across the voices.
 
 Raise a few voice levels, set `bank` and `wave` to taste, then bring up `lfod` and `lfor` to set the morph moving. `vco drift` in the params menu fans the three oscillators in each voice apart so they morph independently.
 
@@ -29,13 +29,9 @@ Raise a few voice levels, set `bank` and `wave` to taste, then bring up `lfod` a
 | `K3` | latch faders to level / wave | same |
 
 `fader play mode` in the params menu switches the faders between setting
-levels and playing them. See below.
+levels and playing them.
 
-Rows: `note`/`dtun`, `bank`/`wave`, `lfor`/`lfod`, `cutf`/`slop`,
-`shap`/`detu`, `smpl`/`env`.
-
-Everything else, including `lfo spread`, `vco drift`, pan, play mode and the
-envelope controls, is in the params menu.
+Secondary params, including `lfo spread`, `vco drift`, pan, play mode and the envelope controls, are in the norns params menu.
 
 ### Wave mode
 
