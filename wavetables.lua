@@ -91,8 +91,13 @@ function init()
 
   P.fader_callback = fader_callback
   P.add_all()
+
+  -- Suppress the fan-out params while restoring, or the bang overwrites
+  -- every per-voice value the pset just loaded. See P.booting.
+  P.booting = true
   params:read()
   params:bang()
+  P.booting = false
 
   for i = 1, NUM_VOICES do
     sliders[i] = params:get("vol" .. i) * ui.MAX_SLIDER

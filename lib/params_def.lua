@@ -8,6 +8,19 @@ local P = {}
 
 P.NUM_VOICES = 16
 
+-- Set true around params:read() and params:bang() at startup.
+--
+-- Four params write values that other params own: the 16 faders write vol,
+-- and lfo_shape_global, env_delay_rand_global and global_pan fan out to all
+-- 16 voices. The faders are added last and the globals first, so a bang
+-- fires them either side of the per-voice values and overwrites whatever a
+-- pset just restored. Measured without this guard: a saved vol of 0.35 came
+-- back as 0, pan 1 as 0, lfo shape 5 as 1.
+--
+-- The guard only suppresses fan-out, never a direct edit, so a deliberate
+-- global change after boot still reaches every voice.
+P.booting = false
+
 local function scale_names()
   local t = {}
   for i = 1, #MusicUtil.SCALES do
@@ -74,6 +87,7 @@ function P.add_all()
 
   params:add_option("lfo_shape_global", "lfo shape (all)", fmt.LFO_SHAPES, 1)
   params:set_action("lfo_shape_global", function(x)
+    if P.booting then return end
     for i = 1, P.NUM_VOICES do params:set("lfo_shape" .. i, x) end
   end)
 
@@ -89,10 +103,28 @@ function P.add_all()
       return p:get() == 1 and "env follower" or "fader"
     end }
 
+  -- Its own group of one. A param defined between two groups is counted as
+  -- a member of the preceding one by norns' menu walk, which is how it
+  -- previously made both "faders config" and "env delay" declare one fewer
+  -- member than they held.
+  params:add_group("panning", 1)
+  params:add{ type = "number", id = "global_pan", name = "global panning",
+    min = 0, max = 1, default = 0,
+    formatter = function(p) return p:get() == 1 and "l/r" or "centre" end,
+    action = function(x)
+      if P.booting then return end
+      for i = 1, P.NUM_VOICES do
+        if x == 0 then params:set("pan" .. i, 0)
+        elseif i % 2 == 0 then params:set("pan" .. i, 1)
+        else params:set("pan" .. i, -1) end
+      end
+    end }
+
   params:add_group("env delay", P.NUM_VOICES + 1)
   params:add_control("env_delay_rand_global", "global env delay rand",
     controlspec.new(0.0, 1.0, "lin", 0.1, 0.0))
   params:set_action("env_delay_rand_global", function(x)
+    if P.booting then return end
     for i = 1, P.NUM_VOICES do params:set("env_delay_rand" .. i, x) end
   end)
   for i = 1, P.NUM_VOICES do
@@ -103,19 +135,8 @@ function P.add_all()
     end)
   end
 
-  params:add{ type = "number", id = "global_pan", name = "global panning",
-    min = 0, max = 1, default = 0,
-    formatter = function(p) return p:get() == 1 and "l/r" or "centre" end,
-    action = function(x)
-      for i = 1, P.NUM_VOICES do
-        if x == 0 then params:set("pan" .. i, 0)
-        elseif i % 2 == 0 then params:set("pan" .. i, 1)
-        else params:set("pan" .. i, -1) end
-      end
-    end }
-
   for i = 1, P.NUM_VOICES do
-    params:add_group(i .. "n voice", 21)
+    params:add_group(i .. "n voice", 20)
 
     params:add_control("vol" .. i, i .. "n vol",
       controlspec.new(0.0, 1.0, "lin", 0.01, 0.0))
@@ -230,6 +251,7 @@ function P.add_all()
     params:add{ type = "number", id = "fader" .. i, name = "fader " .. i,
       min = 0, max = 127, default = 0,
       action = function(v)
+        if P.booting then return end
         if P.fader_callback then P.fader_callback(i, v) end
       end }
   end

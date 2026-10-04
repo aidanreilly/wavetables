@@ -67,9 +67,15 @@ function fmt.lfo_depth(x)
 end
 
 function fmt.cutoff(hz)
-  if hz < 1000 then return string.format("%d", hz) end
-  if hz < 10000 then return string.format("%.1fk", hz / 1000) end
-  return string.format("%dk", math.floor(hz / 1000 + 0.5))
+  -- Round FIRST, then branch. Two reasons. Strict Lua (matron) raises
+  -- "number has no integer representation" on string.format("%d", 820.37),
+  -- where LuaJIT truncates silently, and cutoff is an exp controlspec whose
+  -- encoder clicks land on values like 12008.000000000002. Rounding before
+  -- the comparison also keeps 999.6 reading as 1.0k rather than 1000.
+  local r = math.floor(hz + 0.5)
+  if r < 1000 then return string.format("%d", r) end
+  if r < 10000 then return string.format("%.1fk", r / 1000) end
+  return string.format("%dk", math.floor(r / 1000 + 0.5))
 end
 
 function fmt.slope(db)
