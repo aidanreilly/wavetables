@@ -1,8 +1,6 @@
---- wavetables v0.1.0
--- @oootini
--- wavetable drone synth
---
--- derived from sines
+--- wavetables 
+-- v0.0.1 - @oootini
+-- A wavetable drone synth
 --
 -- ▼ controls ▼
 -- E2 - select voice
@@ -206,10 +204,6 @@ function key(n, z)
   if n == 2 then
     ctrl = not ctrl
   elseif n == 3 then
-    -- Latched, following sines' one modal idiom (control_toggle on K2).
-    -- K1 would be the conventional modifier but a K1 press is how norns
-    -- switches to its own menu, and a latch needs a press. Play mode moved
-    -- to the params menu, where it already existed as "fader play mode".
     wave_mode = not wave_mode
   end
   screen_dirty = true
