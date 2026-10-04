@@ -158,8 +158,12 @@ WavetablesVoice {
   }
 
   *outputDef {
-    ^SynthDef(\wtoutput, { arg in = 0, out = 0;
-      var sig = In.ar(in, 2);
+    // Each voice peaks near full scale on its own, so 16 of them need
+    // headroom before the limiter or it sits clamped at 0 dBFS. -12 dB is
+    // the RMS sum of 16 uncorrelated voices; the limiter catches the peaks
+    // where they line up.
+    ^SynthDef(\wtoutput, { arg in = 0, out = 0, gain = 0.25;
+      var sig = In.ar(in, 2) * gain;
       sig = Limiter.ar(sig, 1.0, 0.01);
       Out.ar(out, sig);
     });
