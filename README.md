@@ -81,12 +81,6 @@ hardware.
 **16n** faders drive the 16 voice levels, or their wave positions in wave
 mode, or play the voices in play mode.
 
-## Wavetables
-
-The wavetables are the ROM banks of the
-[Synthesis Technology E350 Morphing Terrarium](https://synthtech.com/eurorack/E350/),
-included under `lib/waves`. See `lib/waves/README.md`.
-
 ## Credits
 
 Based on [sines](https://github.com/aidanreilly/sines). Included wavetable ROMs are from [Synth Tech WaveEdit](https://synthtech.com/waveedit/). `lib/16n.lua` by @p3r7.
