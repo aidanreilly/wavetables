@@ -1,7 +1,7 @@
 -- Morph position to buffer position.
 --
--- The three E350 banks live in one consecutive 195-buffer set because VOsc
--- requires consecutively numbered buffers. Each bank gets 65 slots rather
+-- The three wavetable banks live in one consecutive 195-buffer set, because
+-- VOsc requires consecutively numbered buffers. Each bank gets 65 slots rather
 -- than 64: VOsc interpolates buf[n] against buf[n+1], so without a 65th
 -- slot holding a copy of wave 1 the top of a bank is a dead end and a
 -- cycling LFO would read the next bank's unrelated waves.

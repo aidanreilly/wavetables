@@ -3,8 +3,9 @@
 // Derived from sines (https://github.com/aidanreilly/sines), which took its
 // voice architecture from catfact's zebra. Apache 2.0.
 //
-// Wavetables are the ROM banks of the Synthesis Technology E350 Morphing
-// Terrarium, https://synthtech.com/eurorack/E350/ . See lib/waves/README.md.
+// The wavetables are the open source set used in Synthesis Technology VCO
+// eurorack modules, distributed with their WaveEdit editor,
+// https://synthtech.com/waveedit/ . See lib/waves/README.md.
 //
 // This class deliberately has no CroneEngine dependency, so a plain sclang
 // can load it and the tests under test/sc can measure the real DSP.

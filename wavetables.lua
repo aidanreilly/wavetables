@@ -1,6 +1,6 @@
 --- wavetables v0.1.0
 -- @oootini
--- E350 wavetable drone synth
+-- wavetable drone synth
 --
 -- derived from sines
 --
@@ -79,7 +79,7 @@ end
 -- lifecycle -----------------------------------------------------------
 
 function init()
-  print("wavetables: E350 wavetable drone")
+  print("wavetables: 16-voice wavetable drone")
 
   P.fader_callback = fader_callback
   P.add_all()
