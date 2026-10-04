@@ -89,8 +89,6 @@ included under `lib/waves`. See `lib/waves/README.md`.
 
 ## Credits
 
-Derived from [sines](https://github.com/aidanreilly/sines) by @oootini,
-which is where the voice architecture, envelope table, bitcrush and 16n
-support come from. Apache 2.0, as sines is.
-
+Based on [sines](https://github.com/aidanreilly/sines)
+Wavetable roms from [Synth Tech WaveEdit](https://synthtech.com/waveedit/)
 `lib/16n.lua` by @p3r7.
