@@ -70,9 +70,11 @@ WavetablesVoice {
     ^bufs;
   }
 
-  // One phase source, shaped arithmetically
+  // One phase source, shaped arithmetically. phase is added to the ramp
+  // rather than passed as LFSaw's iphase, which is read only at synth start
+  // and would ignore later lfo spread and vco drift changes.
   *lfo { arg rate, phase, shape;
-    var ramp = LFSaw.kr(rate, phase * 2).range(0, 1);
+    var ramp = (LFSaw.kr(rate).range(0, 1) + phase).wrap(0, 1);
     ^Select.kr(shape, [
       sin(ramp * 2pi),
       (ramp * 4 - 2).fold(-1, 1),
@@ -118,6 +120,11 @@ WavetablesVoice {
       pan_ = Lag.ar(K2A.ar(pan), panLag);
 
       base = Lag.kr(wave, waveLag);
+
+      // Lagged so turning lfo spread or vco drift glides the morph
+      // position instead of stepping it.
+      lfoSpread = Lag.kr(lfoSpread, 0.1);
+      vcoDrift = Lag.kr(vcoDrift, 0.1);
 
       voicePhase = (voiceIdx / numVoices) * lfoSpread;
 
