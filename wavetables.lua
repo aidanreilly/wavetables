@@ -161,8 +161,7 @@ function init()
         fader_follow[i] = follow_countdown(i, fader_abs[i])
         if params:get("play_mode") == 1 then
           if math.abs(fader_follow[i] - fader_abs[i]) > 10 then
-            params:set("vol" .. i,
-              util.linexp(0, 127, 0.0001, 1.0, fader_follow[i]))
+            params:set("vol" .. i, P.follow_level(fader_follow[i]))
           end
         end
       end

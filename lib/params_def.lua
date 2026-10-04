@@ -257,6 +257,18 @@ function P.add_all()
   end
 end
 
+-- Fader value to voice level for the env follower.
+--
+-- util.linexp cannot reach 0, by construction: an exponential mapping has
+-- no zero. Feeding it a fader at rest returned 0.0001, which reads as
+-- level > 0 everywhere else in the script, so voice gating could never park
+-- a voice in env-follower mode and the follow clock kept rewriting vol over
+-- anything E3 or the grid set. Below the threshold the answer is exactly 0.
+function P.follow_level(v)
+  if v < 1 then return 0 end
+  return util.linexp(0, 127, 0.0001, 1.0, v)
+end
+
 P.set_notes = set_notes
 P.voice_hz = voice_hz
 
