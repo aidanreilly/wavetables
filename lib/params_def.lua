@@ -62,13 +62,17 @@ function P.add_all()
     for i = 1, P.NUM_VOICES do engine.amp_slew(i - 1, x) end
   end)
 
+  -- Both spreads are single global params with no per-voice counterpart. One
+  -- engine command sets the SynthDef arg on all 16 synths, so a pset stores
+  -- one value each. Unlike lfo_shape_global below, which fans out into the
+  -- per-voice params and can then be overridden voice by voice.
   params:add_control("lfo_spread", "lfo spread",
     controlspec.new(0.0, 1.0, "lin", 0.01, 0.5))
   params:set_action("lfo_spread", function(x) engine.lfo_spread(x) end)
 
-  params:add_control("osc_drift", "osc drift",
+  params:add_control("osc_spread", "osc spread",
     controlspec.new(0.0, 1.0, "lin", 0.01, 0.25))
-  params:set_action("osc_drift", function(x) engine.osc_drift(x) end)
+  params:set_action("osc_spread", function(x) engine.osc_spread(x) end)
 
   params:add_option("lfo_shape_global", "lfo shape (all)", fmt.LFO_SHAPES, 1)
   params:set_action("lfo_shape_global", function(x)
@@ -132,12 +136,12 @@ function P.add_all()
       formatter = function(p) return MusicUtil.note_num_to_name(p:get(), true) end,
       action = function() send_hz(i) end }
 
-    params:add_control("cents" .. i, i .. "n note detune",
+    params:add_control("cents" .. i, i .. "n fine tune",
       controlspec.new(-200, 200, "lin", 1, 0, "cents"))
     params:set_action("cents" .. i, function() send_hz(i) end)
 
-    -- Osc spread: fans the three oscillators
-    params:add_control("detune" .. i, i .. "n osc detune",
+    -- Fans the three oscillators in pitch. Morph spread is osc_spread
+    params:add_control("detune" .. i, i .. "n detune",
       controlspec.new(0, 50, "lin", 1, 7, "cents"))
     params:set_action("detune" .. i, function(x) engine.detune(i - 1, x) end)
 

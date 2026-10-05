@@ -18,7 +18,7 @@ You can add @catfact's `z_tuning` mod for microtuning. Install it with `;install
 
 Select a root note and scale in the norns params menu. 16 frequencies from that scale are spread across the voices.
 
-Raise a few voice levels, set `bank` and `wave` to taste, then bring up `lfod` and `lfor` to set the morph moving. `osc drift` in the params menu detunes the three oscillators in each voice apart so they morph independently. As they slide past each other they land on waves that reinforce or cancel, so a voice swells and thins over minutes without you touching it. Low drift holds a voice steady, high drift lets the drone breathe.
+Raise a few voice levels, set `bank` and `wave` to taste, then bring up `lfod` and `lfor` to set the wave morph. `osc spread` in the params menu fans the three oscillators in each voice apart so they morph independently.
 
 ### Controls
 
@@ -30,21 +30,24 @@ Raise a few voice levels, set `bank` and `wave` to taste, then bring up `lfod` a
 | `K2` | to params |
 | `K3` | latch faders to level / wave |
 
-Main params:
+**Per-voice params**
 
-- `root note` and `scale mode` set the notes assigned across the 16 voices.
 - `bank` selects a wavetable bank, and `wave` sets the starting wave within it.
 - `lfo rate`, `lfo depth`, and `lfo shape` set the speed, range, and pattern of wavetable morphing.
-- `lfo spread` offsets the morph LFO phase across voices; `osc drift` offsets phase and rate across the three oscillators in each voice.
-- `osc detune` sets the pitch spread between a voice's three oscillators; `note detune` offsets the voice pitch from its overall note value.
+- `detune` sets the pitch spread between the voice's three oscillators; `fine tune` offsets the voice pitch from its scale note. Both are in cents.
 - `cutoff` and `slope` set the low-pass filter frequency and steepness.
 - `sample bitrate` selects the sample rate and bit depth for lo-fi processing.
-- `env` sets the amplitude envelope; `pan` positions a voice in stereo.
-- `vol` sets a voice's level.
-- `fader play mode` in the params menu switches the faders between setting
-levels and playing them.
+- `env` sets the amplitude envelope; `pan` positions the voice in stereo.
+- `vol` sets the voice's level.
 
-Open the norns params menu for global settings such as `lfo spread`, `osc drift`, pan, and play mode.
+**Global params**
+
+- `root note` and `scale mode` set the notes assigned across the voices.
+- `lfo spread` offsets the morph LFO phase from one voice to the next, so the 16 voices do not morph in lockstep. At 0 they all sit at the same point in the sweep.
+- `osc spread` offsets the morph LFO phase and rate across the three oscillators within each voice. It applies the same spread in every voice.
+- `amp slew` sets how fast a voice's level follows a change, whether from a fader, `E3`, or the params menu.
+- `fader play mode` switches the faders between setting levels and playing them.
+- `lfo shape (all)`, `global panning`, and `global env delay rand` write the same value into all 16 per-voice params, which you can then change individually.
 
 ### Wave mode
 

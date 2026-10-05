@@ -101,7 +101,7 @@ Engine_Wavetables : CroneEngine {
       };
     });
 
-    [[\lfo_spread, \lfoSpread], [\osc_drift, \oscDrift]].do({ arg pair;
+    [[\lfo_spread, \lfoSpread], [\osc_spread, \oscSpread]].do({ arg pair;
       var cmd = pair[0], argName = pair[1];
       this.addCommand(cmd, "f", { arg msg;
         synths.do({ arg s; s.set(argName, msg[1]) });

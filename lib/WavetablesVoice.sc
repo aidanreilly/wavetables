@@ -68,7 +68,7 @@ WavetablesVoice {
 
   // One phase source, shaped arithmetically. phase is added to the ramp
   // rather than passed as LFSaw's iphase, which is read only at synth start
-  // and would ignore later lfo spread and osc drift changes.
+  // and would ignore later lfo spread and osc spread changes.
   *lfo { arg rate, phase, shape;
     var ramp = (LFSaw.kr(rate).range(0, 1) + phase).wrap(0, 1);
     ^Select.kr(shape, [
@@ -101,14 +101,14 @@ WavetablesVoice {
           wave = 0, waveLag = 0.02,
           hz = 220, hzLag = 0.005, detune = 0,
           lfoRate = 0.1, lfoDepth = 0, lfoShape = 0,
-          lfoSpread = 0, oscDrift = 0,
+          lfoSpread = 0, oscSpread = 0,
           cutoff = 20000, slopeIdx = 3,
           smplRate = 48000, bitDepth = 24,
           ampAtk = 0.001, ampRel = 0.05, envBias = 1.0,
           envDelay = 0.0, envDelayRand = 0.0,
           vol = 0.0, ampSlew = 0.01, pan = 0.0, panLag = 0.005;
 
-      var hz_, vol_, pan_, base, voicePhase, oscs, sum, crushed, filt, amp_;
+      var hz_, vol_, pan_, base, voiceMorphPhase, oscs, sum, crushed, filt, amp_;
       var declick;
 
       hz_  = Lag.ar(K2A.ar(hz), hzLag);
@@ -117,12 +117,12 @@ WavetablesVoice {
 
       base = Lag.kr(wave, waveLag);
 
-      // Lagged so turning lfo spread or osc drift glides the morph
+      // Lagged so turning lfo spread or osc spread glides the morph
       // position instead of stepping it
       lfoSpread = Lag.kr(lfoSpread, 0.1);
-      oscDrift = Lag.kr(oscDrift, 0.1);
+      oscSpread = Lag.kr(oscSpread, 0.1);
 
-      voicePhase = (voiceIdx / numVoices) * lfoSpread;
+      voiceMorphPhase = (voiceIdx / numVoices) * lfoSpread;
 
       declick = EnvGen.kr(
         Env([1, 0, 1], [0.003, 0.005], \sine),
@@ -130,18 +130,23 @@ WavetablesVoice {
       );
 
       oscs = 3.collect({ arg k;
-        var oscPhase, rate, pos, f;
+        var oscMorphPhase, rate, pos, f;
 
-        // oscDrift fans the three oscillators a third of a cycle apart and also detunes their LFO rates slightly
-        // Each voice has one audio phase
-        // When drift spreads waves are summed with some phase cancellation resulting in a musical voice volume ebb and flow
-        // LFO rate detune means the spread never settles
-        oscPhase = (k / 3) * oscDrift;
-        rate = lfoRate * (1 + ((k - 1) * 0.03 * oscDrift));
+        // oscSpread fans the three oscillators across the morph sweep: up to a
+        // third of an LFO cycle apart, with their LFO rates skewed by up to 3%
+        // so the fan keeps sliding instead of settling into a fixed offset.
+        // Both terms land in pos, the buffer index, so spread only changes which
+        // wavetable each oscillator reads. It never reaches f; pitch is detune's
+        // job alone, and these are morph-LFO phases, not audio phase.
+        // Audio phase stays 0 for all three, so the swell is not beating: they
+        // read different waves at any instant and their harmonics reinforce and
+        // cancel by turns, thinning and filling the voice over minutes.
+        oscMorphPhase = (k / 3) * oscSpread;
+        rate = lfoRate * (1 + ((k - 1) * 0.03 * oscSpread));
 
         // VOsc sweeps every table between one block's position and the next
         pos = (base + (lfoDepth * WavetablesVoice.lfo(
-          rate, voicePhase + oscPhase, lfoShape))).fold(0, wavesPerBank);
+          rate, voiceMorphPhase + oscMorphPhase, lfoShape))).fold(0, wavesPerBank);
 
         f = hz_ * (2 ** (((k - 1) * detune) / 1200));
 

@@ -17,11 +17,11 @@ local LABEL2_X, VALUE2_X = 62, 89
 local SLIDER_X0, SLIDER_DX = 32, 4
 
 ui.ROWS = {
-  { left = { "note:", "note" },   right = { "dtun:", "cents" } },
+  { left = { "note:", "note" },   right = { "fine:", "cents" } },
   { left = { "bank:", "bank" },   right = { "wave:", "wave" } },
   { left = { "lfor:", "lfo_rate" }, right = { "lfod:", "lfo_depth" } },
   { left = { "cutf:", "cutoff" }, right = { "slop:", "slope" } },
-  { left = { "shap:", "lfo_shape" }, right = { "oscd:", "detune" } },
+  { left = { "shap:", "lfo_shape" }, right = { "dtun:", "detune" } },
   { left = { "smpl:", "sample_bitrate" }, right = { "env:", "env" } },
 }
 
