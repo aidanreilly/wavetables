@@ -34,7 +34,7 @@ Main params:
 - `bank` selects a wavetable bank, and `wave` sets the starting wave within it.
 - `lfo rate`, `lfo depth`, and `lfo shape` set the speed, range, and pattern of wavetable morphing.
 - `lfo spread` offsets the morph LFO phase across voices; `osc drift` offsets phase and rate across the three oscillators in each voice.
-- `osc detune` sets the pitch spread between a voice's three oscillators; `cents detune` offsets the voice's note.
+- `osc detune` sets the pitch spread between a voice's three oscillators; `note detune` offsets the voice from its note.
 - `cutoff` and `slope` set the low-pass filter frequency and steepness.
 - `sample bitrate` selects the sample rate and bit depth for lo-fi processing.
 - `env` sets the amplitude envelope; `pan` positions a voice in stereo.

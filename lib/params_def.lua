@@ -132,7 +132,7 @@ function P.add_all()
       formatter = function(p) return MusicUtil.note_num_to_name(p:get(), true) end,
       action = function() send_hz(i) end }
 
-    params:add_control("cents" .. i, i .. "n cents detune",
+    params:add_control("cents" .. i, i .. "n note detune",
       controlspec.new(-200, 200, "lin", 1, 0, "cents"))
     params:set_action("cents" .. i, function() send_hz(i) end)
 
