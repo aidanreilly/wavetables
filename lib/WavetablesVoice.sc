@@ -1,9 +1,5 @@
-// wavetables are from the open source set used in Synthesis Technology VCO
-// eurorack modules, distributed with their WaveEdit editor,
-// https://synthtech.com/waveedit/
-// This class deliberately has no CroneEngine dependency, so a plain sclang
-// can load it
-// Engine_Wavetables is thin Crone wiring over this.
+// wavetables are from the open source Synthesis Technology WaveEdit editor
+// See Engine_Wavetables for the thin Crone wiring
 
 WavetablesVoice {
   classvar <numVoices = 16;
@@ -72,7 +68,7 @@ WavetablesVoice {
 
   // One phase source, shaped arithmetically. phase is added to the ramp
   // rather than passed as LFSaw's iphase, which is read only at synth start
-  // and would ignore later lfo spread and vco drift changes.
+  // and would ignore later lfo spread and osc drift changes.
   *lfo { arg rate, phase, shape;
     var ramp = (LFSaw.kr(rate).range(0, 1) + phase).wrap(0, 1);
     ^Select.kr(shape, [
@@ -105,7 +101,7 @@ WavetablesVoice {
           wave = 0, waveLag = 0.02,
           hz = 220, hzLag = 0.005, detune = 0,
           lfoRate = 0.1, lfoDepth = 0, lfoShape = 0,
-          lfoSpread = 0, vcoDrift = 0,
+          lfoSpread = 0, oscDrift = 0,
           cutoff = 20000, slopeIdx = 3,
           smplRate = 48000, bitDepth = 24,
           ampAtk = 0.001, ampRel = 0.05, envBias = 1.0,
@@ -121,10 +117,10 @@ WavetablesVoice {
 
       base = Lag.kr(wave, waveLag);
 
-      // Lagged so turning lfo spread or vco drift glides the morph
-      // position instead of stepping it.
+      // Lagged so turning lfo spread or osc drift glides the morph
+      // position instead of stepping it
       lfoSpread = Lag.kr(lfoSpread, 0.1);
-      vcoDrift = Lag.kr(vcoDrift, 0.1);
+      oscDrift = Lag.kr(oscDrift, 0.1);
 
       voicePhase = (voiceIdx / numVoices) * lfoSpread;
 
@@ -134,17 +130,15 @@ WavetablesVoice {
       );
 
       oscs = 3.collect({ arg k;
-        var vcoPhase, rate, pos, f;
+        var oscPhase, rate, pos, f;
 
-        // vcoDrift fans the three VCOs a third of a cycle apart and also detunes their LFO rates slightly
-        vcoPhase = (k / 3) * vcoDrift;
-        rate = lfoRate * (1 + ((k - 1) * 0.03 * vcoDrift));
+        // oscDrift fans the three oscillators a third of a cycle apart and also detunes their LFO rates slightly
+        oscPhase = (k / 3) * oscDrift;
+        rate = lfoRate * (1 + ((k - 1) * 0.03 * oscDrift));
 
-        // fold, not wrap: VOsc sweeps every table between one block's
-        // position and the next, so a 63.9 -> 0.1 wrap scans the whole bank
-        // in 64 samples and clicks.
+        // VOsc sweeps every table between one block's position and the next
         pos = (base + (lfoDepth * WavetablesVoice.lfo(
-          rate, voicePhase + vcoPhase, lfoShape))).fold(0, wavesPerBank);
+          rate, voicePhase + oscPhase, lfoShape))).fold(0, wavesPerBank);
 
         f = hz_ * (2 ** (((k - 1) * detune) / 1200));
 
@@ -169,9 +163,7 @@ WavetablesVoice {
 
   *outputDef {
     // Each voice peaks near full scale on its own, so 16 of them need
-    // headroom before the limiter or it sits clamped at 0 dBFS. -12 dB is
-    // the RMS sum of 16 uncorrelated voices; the limiter catches the peaks
-    // where they line up.
+    // headroom before the limiter
     ^SynthDef(\wtoutput, { arg in = 0, out = 0, gain = 0.25;
       var sig = In.ar(in, 2) * gain;
       sig = Limiter.ar(sig, 1.0, 0.01);

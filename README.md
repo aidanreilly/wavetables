@@ -16,7 +16,7 @@ Optional: @catfact's `z_tuning` mod enables microtuning. Install with `;install 
 
 Select a root note and scale in the norns params menu. 16 frequencies from that scale are spread across the voices.
 
-Raise a few voice levels, set `bank` and `wave` to taste, then bring up `lfod` and `lfor` to set the morph moving. `vco drift` in the params menu fans the three oscillators in each voice apart so they morph independently.
+Raise a few voice levels, set `bank` and `wave` to taste, then bring up `lfod` and `lfor` to set the morph moving. `osc drift` in the params menu fans the three oscillators in each voice apart so they morph independently.
 
 ### Controls
 
@@ -31,7 +31,7 @@ Raise a few voice levels, set `bank` and `wave` to taste, then bring up `lfod` a
 `fader play mode` in the params menu switches the faders between setting
 levels and playing them.
 
-Secondary params, including `lfo spread`, `vco drift`, pan, play mode and the envelope controls, are in the norns params menu.
+Secondary params, including `lfo spread`, `osc drift`, pan, play mode and the envelope controls, are in the norns params menu.
 
 ### Wave mode
 

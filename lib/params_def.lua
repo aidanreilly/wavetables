@@ -66,9 +66,9 @@ function P.add_all()
     controlspec.new(0.0, 1.0, "lin", 0.01, 0.5))
   params:set_action("lfo_spread", function(x) engine.lfo_spread(x) end)
 
-  params:add_control("vco_drift", "vco drift",
+  params:add_control("osc_drift", "osc drift",
     controlspec.new(0.0, 1.0, "lin", 0.01, 0.25))
-  params:set_action("vco_drift", function(x) engine.vco_drift(x) end)
+  params:set_action("osc_drift", function(x) engine.osc_drift(x) end)
 
   params:add_option("lfo_shape_global", "lfo shape (all)", fmt.LFO_SHAPES, 1)
   params:set_action("lfo_shape_global", function(x)
@@ -136,8 +136,8 @@ function P.add_all()
       controlspec.new(-200, 200, "lin", 1, 0, "cents"))
     params:set_action("cents" .. i, function() send_hz(i) end)
 
-    -- VCO spread: fans the three oscillators
-    params:add_control("detune" .. i, i .. "n vco detune",
+    -- Osc spread: fans the three oscillators
+    params:add_control("detune" .. i, i .. "n osc detune",
       controlspec.new(0, 50, "lin", 1, 7, "cents"))
     params:set_action("detune" .. i, function(x) engine.detune(i - 1, x) end)
 
