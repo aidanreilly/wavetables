@@ -5,6 +5,7 @@ NOTES.md
 TODO.md
 *.plan.md
 *.design.md
+.superpowers/
 
 # test harnesses and scratch work, local only
 test/
