@@ -16,7 +16,7 @@ You can add @catfact's `z_tuning` mod for microtuning. Install it with `;install
 
 Select a root note and scale in the norns params menu. 16 frequencies from that scale are spread across the voices.
 
-Raise a few voice levels, set `bank` and `wave` to taste, then bring up `lfod` and `lfor` to set the morph moving. `osc drift` in the params menu fans the three oscillators in each voice apart so they morph independently.
+Raise a few voice levels, set `bank` and `wave` to taste, then bring up `lfod` and `lfor` to set the morph moving. `osc drift` in the params menu fans the three oscillators in each voice apart so they morph independently. As they slide past each other they land on waves that reinforce or cancel, so a voice swells and thins over minutes without you touching it. Low drift holds a voice steady, high drift lets the drone breathe.
 
 ### Controls
 

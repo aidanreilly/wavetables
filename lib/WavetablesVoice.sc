@@ -133,6 +133,9 @@ WavetablesVoice {
         var oscPhase, rate, pos, f;
 
         // oscDrift fans the three oscillators a third of a cycle apart and also detunes their LFO rates slightly
+        // Each voice has one audio phase
+        // When drift spreads waves are summed with some phase cancellation resulting in a musical voice volume ebb and flow
+        // LFO rate detune means the spread never settles
         oscPhase = (k / 3) * oscDrift;
         rate = lfoRate * (1 + ((k - 1) * 0.03 * oscDrift));
 

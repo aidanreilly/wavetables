@@ -21,7 +21,7 @@ ui.ROWS = {
   { left = { "bank:", "bank" },   right = { "wave:", "wave" } },
   { left = { "lfor:", "lfo_rate" }, right = { "lfod:", "lfo_depth" } },
   { left = { "cutf:", "cutoff" }, right = { "slop:", "slope" } },
-  { left = { "shap:", "lfo_shape" }, right = { "detu:", "detune" } },
+  { left = { "shap:", "lfo_shape" }, right = { "oscd:", "detune" } },
   { left = { "smpl:", "sample_bitrate" }, right = { "env:", "env" } },
 }
 
