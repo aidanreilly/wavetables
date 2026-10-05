@@ -2,7 +2,7 @@
 
 A 16-voice wavetable drone synth for [monome norns](https://monome.org/docs/norns/).
 
-Each voice is three wavetable oscillators scanning 3 wavetable ROM banks, with per-oscillator LFO drift on the morph position and a variable-slope lowpass filter.
+Each voice uses three wavetable oscillators and a low-pass filter. Their LFOs move through the waves, and you can vary the filter slope.
 
 ## Install
 
@@ -10,7 +10,7 @@ Ensure norns is up to date. Visit <http://norns.local> and run `;install https:/
 
 Then `SYSTEM => RESET` to pick up the SuperCollider engine, and restart.
 
-Optional: @catfact's `z_tuning` mod enables microtuning. Install with `;install https://github.com/catfact/z_tuning`, enable it in `SYSTEM => MODS`, then reset and restart.
+You can add @catfact's `z_tuning` mod for microtuning. Install it with `;install https://github.com/catfact/z_tuning`. Enable it under `SYSTEM => MODS`, then reset and restart.
 
 ## Play
 
@@ -28,14 +28,25 @@ Raise a few voice levels, set `bank` and `wave` to taste, then bring up `lfod` a
 | `K2` | to params | to levels |
 | `K3` | latch faders to level / wave | same |
 
-`fader play mode` in the params menu switches the faders between setting
+Main params:
+
+- `root note` and `scale mode` set the notes assigned across the 16 voices.
+- `bank` selects a wavetable bank, and `wave` sets the starting wave within it.
+- `lfo rate`, `lfo depth`, and `lfo shape` set the speed, range, and pattern of wavetable morphing.
+- `lfo spread` offsets the morph LFO phase across voices; `osc drift` offsets phase and rate across the three oscillators in each voice.
+- `osc detune` sets the pitch spread between a voice's three oscillators; `cents detune` offsets the voice's note.
+- `cutoff` and `slope` set the low-pass filter frequency and steepness.
+- `sample bitrate` selects the sample rate and bit depth for lo-fi processing.
+- `env` sets the amplitude envelope; `pan` positions a voice in stereo.
+- `vol` sets a voice's level.
+- `fader play mode` in the params menu switches the faders between setting
 levels and playing them.
 
-Secondary params, including `lfo spread`, `osc drift`, pan, play mode and the envelope controls, are in the norns params menu.
+Open the norns params menu for global settings such as `lfo spread`, `osc drift`, pan, and play mode.
 
 ### Wave mode
 
-`K3` latches what the faders drive. In wave mode each fader scans its own voice through the 64 waves of that voice's bank, so you can morph several voices at once by hand, and `E3` scans the selected voice if you have no 16n.
+`K3` latches what the faders drive. In wave mode, each fader scans its voice through the 64 waves in its bank. This lets you morph several voices at once by hand. If you have no 16n, `E3` scans the selected voice.
 
 ### Play mode
 
