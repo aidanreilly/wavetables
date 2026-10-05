@@ -6,6 +6,7 @@ TODO.md
 *.plan.md
 *.design.md
 .superpowers/
+.pytest_cache
 
 # test harnesses and scratch work, local only
 test/
