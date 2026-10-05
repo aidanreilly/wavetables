@@ -24,13 +24,13 @@ Raise a few voice levels, set `bank` and `wave` to taste, then bring up `lfod` a
 
 ### Controls
 
-|  | Levels | Params (K2) |
-| --- | --- | --- |
-| `E1` |  | select row |
-| `E2` | select voice | edit left column |
-| `E3` | voice level, or wave in wave mode | edit right column |
-| `K2` | to params | to levels |
-| `K3` | latch faders to level / wave | same |
+| Control | Param |
+| --- | --- |
+| `E1` | select row |
+| `E2` | select voice |
+| `E3` | voice level, or wave in wave mode |
+| `K2` | to params |
+| `K3` | latch faders to level / wave |
 
 Main params:
 
