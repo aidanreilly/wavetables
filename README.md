@@ -4,7 +4,7 @@ A 16-voice wavetable drone synth for [monome norns](https://monome.org/docs/norn
 
 Each voice uses three wavetable oscillators and a low-pass filter. Their LFOs move through the waves, and you can vary the filter slope.
 
-<img width="800" alt="image" src="https://github.com/user-attachments/assets/b6d855d9-a791-40d9-8320-667ed48dd904" />
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/10b3aaf6-62e3-498e-ad8a-2d842cb537ff" />
 
 ## Install
 
