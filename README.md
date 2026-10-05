@@ -36,10 +36,12 @@ Raise a few voice levels, set `bank` and `wave` to taste, then bring up `lfod` a
 
 - `bank` selects a wavetable bank, and `wave` sets the starting wave within it.
 - `lfo rate`, `lfo depth`, and `lfo shape` set the speed, range, and pattern of wavetable morphing.
-- `fine tune` offsets the voice pitch from its note value; `detune` spreads the voice's three oscillators either side of that pitch. Both are in cents.
+- `fine tune` offsets the voice pitch from its note value in cents.
+- `detune` spreads the voice's three oscillators either side of the main voice pitch.
 - `cutoff` and `slope` set the low-pass filter frequency and steepness.
 - `smpl bitrate` selects the sample rate and bit depth for lo-fi processing.
-- `env` sets the amplitude envelope; `pan` positions the voice in stereo.
+- `env` sets the amplitude envelope.
+- `pan` positions the voice in stereo.
 - `vol` sets the voice's level.
 
 **Global params**
@@ -55,7 +57,7 @@ Raise a few voice levels, set `bank` and `wave` to taste, then bring up `lfod` a
 
 ### Wave mode
 
-`K3` latches what the faders drive. In wave mode, each fader scans its voice through the 64 waves in its bank. This lets you morph several voices at once by hand. If you have no 16n, `E3` scans the selected voice.
+`K3` switches fader controls. In wave mode, each fader scans its voice through the 64 waves in its bank. This lets you morph several voices at once by hand. If you have no 16n, `E3` scans the selected voice.
 
 ### Play mode
 
