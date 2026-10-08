@@ -6,7 +6,7 @@
 
 local wavedata = {}
 
-wavedata.POINTS = 64
+wavedata.POINTS = 128
 
 local FILES = { "rom_a.wav", "rom_b.wav", "rom_c.wav" }
 local WAVES, WAVE_LEN = 64, 256

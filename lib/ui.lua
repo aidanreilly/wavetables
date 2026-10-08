@@ -16,8 +16,9 @@ local LABEL2_X, VALUE2_X = 62, 89
 
 local SLIDER_X0, SLIDER_DX = 32, 4
 
--- The wave mode scope, drawn where the sliders sit
-local SCOPE_X0 = SLIDER_X0
+-- The wave mode scope, drawn where the sliders sit and as wide as the
+-- text above it: wavedata.POINTS is one point per pixel across the screen
+local SCOPE_X0 = LABEL_X
 local SCOPE_MID_Y = 53
 local SCOPE_AMP = 8
 
