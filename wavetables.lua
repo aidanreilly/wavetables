@@ -6,10 +6,17 @@
 -- E2 - select voice
 -- E3 - voice level
 -- K2 - toggle levels/params
--- K3 - latch faders to level/wave
+-- K3 - wave mode in/out
+--
+-- wave mode
+-- E1 - select voice
+-- E2 - bank
+-- E3 - wave
 --
 -- 16n
--- n - voice level
+-- n - voice level, or
+--     select voice + wave
+--     in wave mode
 --
 -- z_tuning
 -- params > edit > Z_TUNING
@@ -24,6 +31,7 @@ local P = include "wavetables/lib/params_def"
 local ui = include "wavetables/lib/ui"
 local gate = include "wavetables/lib/voicegate"
 local fplay = include "wavetables/lib/faderplay"
+local wavedata = include "wavetables/lib/wavedata"
 
 local NUM_VOICES = 16
 local FPS = 14
@@ -32,11 +40,21 @@ local edit = 0            -- selected voice, zero-based
 local row = 1             -- selected param row, 1 to 6
 local ctrl = false        -- false: levels, true: params
 local wave_mode = false   -- false: faders drive level, true: they drive wave
+local wave_pos = nil      -- selected voice's live morph position, from the engine
 local sliders = {}
 local screen_dirty = true
 
-local redraw_clock, gate_clock, follow_clock
+local redraw_clock, gate_clock, follow_clock, pos_poll
 local prev_16n = {}
+
+-- The engine reports the selected voice's morph position for the scope,
+-- so it has to hear about every change of voice.
+local function select_voice(i0)
+  if i0 == edit then return end
+  wave_pos = nil
+  edit = i0
+  engine.pos_voice(edit)
+end
 
 -- 16n -----------------------------------------------------------------
 
@@ -48,13 +66,12 @@ local function slider_crossing(i, v)
 end
 
 local function fader_callback(i, v)
-  edit = i - 1
+  select_voice(i - 1)
   if wave_mode then
     -- prev_16n is deliberately NOT updated here, so switching back to level
     -- leaves the volume path's catch-up holding until the fader returns near
     -- where it was. Otherwise volumes would jump the moment you toggle back.
-    local w = P.fader_to_wave(i, v)
-    if w then params:set("wave" .. i, w) end
+    params:set("wave" .. i, P.fader_to_wave(v))
   elseif params:get("play_mode") == 1 then
     -- the clock reads fader deltas in play mode; absolute position is
     -- meaningless there, so this path stays out of the way
@@ -90,9 +107,22 @@ function init()
   P.booting = false
 
   for i = 1, NUM_VOICES do
-    sliders[i] = ui.slider_value(i, wave_mode)
+    sliders[i] = ui.slider_value(i)
     prev_16n[i] = util.linlin(0.0, 1.0, 0, 127, params:get("vol" .. i))
   end
+
+  -- Without the wave data the scope is simply blank; the synth is unaffected.
+  local ok, err = pcall(wavedata.init, _path.code .. "wavetables/lib/waves/")
+  if not ok then print("wavetables: no scope, " .. tostring(err)) end
+
+  engine.pos_voice(edit)
+  pos_poll = poll.set("wave_pos", function(v)
+    -- negative: the engine has no position, so redraw falls back to the param
+    wave_pos = v >= 0 and v or nil
+    if wave_mode then screen_dirty = true end
+  end)
+  pos_poll.time = 1 / FPS
+  pos_poll:start()
 
   _16n.init(_16n_slider_callback)
 
@@ -109,7 +139,7 @@ function init()
     while true do
       clock.sleep(1 / FPS)
       for i = 1, NUM_VOICES do
-        sliders[i] = ui.slider_value(i, wave_mode)
+        sliders[i] = ui.slider_value(i)
       end
       if screen_dirty then
         redraw()
@@ -149,7 +179,8 @@ function init()
         if r > 0 then
           engine.env_delay_rand(i - 1, math.random() * r)
         end
-        if params:get("play_mode") == 1 then
+        -- wave mode faders drive wave only, never level
+        if params:get("play_mode") == 1 and not wave_mode then
           -- the fader's position is ignored; only how far it moved this
           -- tick matters, so a fader left anywhere in 0-127 is harmless
           local level = fplay.update(i, params:get("fader" .. i))
@@ -163,12 +194,26 @@ end
 function cleanup()
   if redraw_clock then clock.cancel(redraw_clock) end
   if gate_clock then clock.cancel(gate_clock) end
+  if pos_poll then pos_poll:stop() end
   if follow_clock then clock.cancel(follow_clock) end
 end
 
 -- controls ------------------------------------------------------------
 
 function enc(n, delta)
+  if wave_mode then
+    local v = edit + 1
+    if n == 1 then
+      select_voice((edit + delta) % NUM_VOICES)
+    elseif n == 2 then
+      params:delta("bank" .. v, delta)
+    elseif n == 3 then
+      params:delta("wave" .. v, delta)
+    end
+    screen_dirty = true
+    return
+  end
+
   if n == 1 then
     if ctrl then
       row = ((row - 1 + delta) % ui.row_count()) + 1
@@ -180,16 +225,13 @@ function enc(n, delta)
       local prefix = ui.ROWS[row].left[2]
       params:delta(prefix .. (edit + 1), delta)
     else
-      edit = (edit + delta) % NUM_VOICES
+      select_voice((edit + delta) % NUM_VOICES)
     end
   elseif n == 3 then
     if ctrl then
       if ui.row_is_tuning(row) then return end
       local prefix = ui.ROWS[row].right[2]
       params:delta(prefix .. (edit + 1), delta)
-    elseif wave_mode then
-      -- a delta, so no catch-up is needed: it moves from where it is
-      params:delta("wave" .. (edit + 1), delta)
     else
       local v = sliders[edit + 1] + (delta * 2)
       params:set("vol" .. (edit + 1),
@@ -205,6 +247,9 @@ function key(n, z)
     ctrl = not ctrl
   elseif n == 3 then
     wave_mode = not wave_mode
+    -- forget the fader positions seen before wave mode, or play mode reads
+    -- all the wave-mode movement as one big strike on the way out
+    if not wave_mode then fplay.reset() end
   end
   screen_dirty = true
 end
@@ -213,6 +258,7 @@ function redraw()
   ui.redraw({
     edit = edit, row = row, ctrl = ctrl, wave_mode = wave_mode,
     sliders = sliders, play_mode = params:get("play_mode"),
+    wave_pos = wave_pos or params:get("wave" .. (edit + 1)),
   })
 end
 

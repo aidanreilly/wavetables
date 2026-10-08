@@ -6,6 +6,7 @@ Engine_Wavetables : CroneEngine {
   classvar numVoices = 16;
 
   var <synths, <bus, <outputStage, <bufs, <wtBase;
+  var posVoice = 0, lastPos = -1, posFunc;
 
   *new { arg context, doneCallback;
     ^super.new(context, doneCallback);
@@ -45,12 +46,23 @@ Engine_Wavetables : CroneEngine {
     });
     server.sync;
 
+    // The voice with report = 1 sends its morph position here; the
+    // wave_pos poll hands the latest one to Lua for drawing. -1 means no
+    // position yet, or the voice is parked and not sending, and Lua falls
+    // back to the wave param.
+    // nodeID check drops a reply still in flight from the previous voice.
+    posFunc = OSCFunc({ arg msg;
+      if (msg[1] == synths[posVoice].nodeID) { lastPos = msg[3] };
+    }, '/wavetables/pos');
+    synths[posVoice].set(\report, 1);
+
     outputStage = Synth.new(\wtoutput,
       [\in, bus, \out, context.out_b],
       target: context.xg, addAction: \addToTail);
     server.sync;
 
     this.addCommands;
+    this.addPoll(\wave_pos, { lastPos });
   }
 
   addCommands {
@@ -98,6 +110,18 @@ Engine_Wavetables : CroneEngine {
       var i = msg[1].asInteger;
       if ((i >= 0) and: { i < numVoices }) {
         synths[i].run(msg[2].asInteger > 0);
+        if (i == posVoice) { lastPos = -1 };
+      };
+    });
+
+    // Which voice reports its morph position to the wave_pos poll.
+    this.addCommand(\pos_voice, "i", { arg msg;
+      var i = msg[1].asInteger;
+      if ((i >= 0) and: { i < numVoices } and: { i != posVoice }) {
+        synths[posVoice].set(\report, 0);
+        synths[i].set(\report, 1);
+        posVoice = i;
+        lastPos = -1;
       };
     });
 
@@ -110,6 +134,7 @@ Engine_Wavetables : CroneEngine {
   }
 
   free {
+    if (posFunc.notNil) { posFunc.free };
     if (synths.notNil) { synths.do({ arg s; s.free }) };
     if (outputStage.notNil) { outputStage.free };
     if (bus.notNil) { bus.free };

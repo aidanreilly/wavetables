@@ -106,10 +106,11 @@ WavetablesVoice {
           smplRate = 48000, bitDepth = 24,
           ampAtk = 0.001, ampRel = 0.05, envBias = 1.0,
           envDelay = 0.0, envDelayRand = 0.0,
-          vol = 0.0, ampSlew = 0.01, pan = 0.0, panLag = 0.005;
+          vol = 0.0, ampSlew = 0.01, pan = 0.0, panLag = 0.005,
+          report = 0;
 
       var hz_, vol_, pan_, base, voiceMorphPhase, oscs, sum, crushed, filt, amp_;
-      var declick;
+      var declick, midPos;
 
       hz_  = Lag.ar(K2A.ar(hz), hzLag);
       vol_ = Lag.ar(K2A.ar(vol), ampSlew);
@@ -148,12 +149,18 @@ WavetablesVoice {
         pos = (base + (lfoDepth * WavetablesVoice.lfo(
           rate, voiceMorphPhase + oscMorphPhase, lfoShape))).fold(0, wavesPerBank);
 
+        if (k == 1) { midPos = pos };
+
         f = hz_ * (2 ** (((k - 1) * detune) / 1200));
 
         VOsc.ar(bufOffset + pos, f, 0, 1/3)
       });
 
       sum = Mix(oscs);
+
+      // The selected voice reports its middle VCO's morph position, so the
+      // screen can draw the wave as it sounds.
+      SendReply.kr(Impulse.kr(15) * report, '/wavetables/pos', midPos);
 
       crushed = Decimator.ar(sum, smplRate, bitDepth, 1.0, 0);
 

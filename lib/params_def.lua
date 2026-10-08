@@ -159,7 +159,9 @@ function P.add_all()
     params:set_action("lfo_rate" .. i, function(x) engine.lfo_rate(i - 1, x) end)
 
     params:add_control("lfo_depth" .. i, i .. "n lfo depth",
-      controlspec.new(0, 32, "lin", 0.01, 0))
+      -- quantum 0.001: one detent moves ~0.03 waves, fine enough to set
+      -- a slow shimmer by hand; encoder acceleration covers the range
+      controlspec.new(0, 32, "lin", 0.001, 0, "", 0.001))
     params:set_action("lfo_depth" .. i, function(x) engine.lfo_depth(i - 1, x) end)
 
     params:add_option("lfo_shape" .. i, i .. "n lfo shape", fmt.LFO_SHAPES, 1)
@@ -244,21 +246,11 @@ function P.add_all()
   end
 end
 
--- How close a fader must come, in CC units, before it takes over a wave
-P.FADER_CATCH = 5
-
--- 16n fader value to a wave position, with catch-up
-function P.fader_to_wave(i, v, force)
+-- 16n fader value to a wave position. No catch-up: in wave mode moving a
+-- fader selects its voice, so the wave jumps straight to the fader.
+function P.fader_to_wave(v)
   local waves = wavemap.WAVES_PER_BANK
-  local mapped = util.clamp(util.linlin(0, 127, 0, waves, v), 0, waves)
-
-  if force or params:string("16n_params_jump") == "yes" then
-    return mapped
-  end
-
-  local target = util.linlin(0, waves, 0, 127, params:get("wave" .. i))
-  if math.abs(v - target) > P.FADER_CATCH then return nil end
-  return mapped
+  return util.clamp(util.linlin(0, 127, 0, waves, v), 0, waves)
 end
 
 P.set_notes = set_notes

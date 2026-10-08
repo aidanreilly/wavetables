@@ -28,9 +28,9 @@ Raise a few voice levels, set `bank` and `wave` to taste, then bring up `lfod` a
 | --- | --- | --- |
 | `E1` | unused | select row |
 | `E2` | select voice | edit left param |
-| `E3` | voice level, or wave in wave mode | edit right param |
+| `E3` | voice level | edit right param |
 | `K2` | to ctrl mode | to slider mode |
-| `K3` | latch faders to level / wave | same |
+| `K3` | wave mode in / out | same |
 
 **Per-voice params**
 
@@ -53,11 +53,13 @@ Raise a few voice levels, set `bank` and `wave` to taste, then bring up `lfod` a
 - `fader play mode` switches the faders between setting levels and playing them.
 - `lfo shape (all)` and `global env delay rand` write the same value into all 16 per-voice params, which you can then change individually.
 - `global panning` sets every voice to centre, or alternates the voices left and right.
-- `auto bind 16n` binds an attached 16n to the voices. Set it to no to ignore incoming CC. `16n param jumps` decides whether a fader takes its voice straight to the fader position, or waits until the fader comes near the voice's current value.
+- `auto bind 16n` binds an attached 16n to the voices. Set it to no to ignore incoming CC. `16n param jumps` decides whether a fader takes its voice straight to the fader position, or waits until the fader comes near the voice's current value. Wave mode always jumps.
 
 ### Wave mode
 
-`K3` switches fader controls. In wave mode, each fader scans its voice through the 64 waves in its bank. This lets you morph several voices at once by hand. If you have no 16n, `E3` scans the selected voice.
+`K3` enters wave mode and `K3` again leaves it. In wave mode `E1` selects the voice, `E2` sets its bank and `E3` its wave, and the sliders give way to a live scope of the selected voice's wave as it morphs.
+
+Moving a 16n fader in wave mode selects that voice, so the screen shows all of its values, and sets its wave straight to the fader's position.
 
 ### Play mode
 
