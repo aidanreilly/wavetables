@@ -31,7 +31,6 @@ local P = include "wavetables/lib/params_def"
 local ui = include "wavetables/lib/ui"
 local gate = include "wavetables/lib/voicegate"
 local fplay = include "wavetables/lib/faderplay"
-local wavedata = include "wavetables/lib/wavedata"
 
 local NUM_VOICES = 16
 local FPS = 14
@@ -112,7 +111,7 @@ function init()
   end
 
   -- Without the wave data the scope is simply blank; the synth is unaffected.
-  local ok, err = pcall(wavedata.init, _path.code .. "wavetables/lib/waves/")
+  local ok, err = pcall(ui.init_scope, _path.code .. "wavetables/lib/waves/")
   if not ok then print("wavetables: no scope, " .. tostring(err)) end
 
   engine.pos_voice(edit)

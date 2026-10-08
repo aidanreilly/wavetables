@@ -46,6 +46,12 @@ local RENDER = {
   env = fmt.env,
 }
 
+-- Loads the wave data the scope draws. norns include is dofile, so ui
+-- holds its own copy of wavedata and has to be the one to load it.
+function ui.init_scope(dir)
+  wavedata.init(dir)
+end
+
 function ui.row_count()
   return #ui.ROWS
 end
