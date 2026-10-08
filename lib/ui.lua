@@ -115,7 +115,7 @@ local function draw_scope(voice, pos)
   local shape = wavedata.shape(params:get("bank" .. voice), pos)
   if shape == nil then return end
   screen.level(15)
-  screen.line_width(1.5)
+  screen.line_width(1.25)
   for j, v in ipairs(shape) do
     local x, y = SCOPE_X0 + j - 1, SCOPE_MID_Y - v * SCOPE_AMP
     if j == 1 then screen.move(x, y) else screen.line(x, y) end
