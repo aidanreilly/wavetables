@@ -109,22 +109,19 @@ local function draw_sliders(state)
 end
 
 -- The selected voice's wave at its live morph position, one thin line.
--- Antialiasing off and whole-pixel points keep it hard-edged; with aa on a
--- 1px line smears into grey.
+-- Slightly antialiased: at 1px aa smears the line into grey, without aa it
+-- steps hard, and 1.5px with aa sits between the two.
 local function draw_scope(voice, pos)
   local shape = wavedata.shape(params:get("bank" .. voice), pos)
   if shape == nil then return end
-  screen.aa(0)
   screen.level(15)
-  screen.line_width(1.0)
+  screen.line_width(1.5)
   for j, v in ipairs(shape) do
-    local x = SCOPE_X0 + j - 1
-    local y = math.floor(SCOPE_MID_Y - v * SCOPE_AMP + 0.5)
+    local x, y = SCOPE_X0 + j - 1, SCOPE_MID_Y - v * SCOPE_AMP
     if j == 1 then screen.move(x, y) else screen.line(x, y) end
   end
   screen.stroke()
   screen.line_width(2.0)
-  screen.aa(1)
 end
 
 local function draw_cell(label_x, value_x, y, label, prefix, voice, level, override)
